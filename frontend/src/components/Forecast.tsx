@@ -132,49 +132,63 @@ export const Forecast: React.FC = () => {
   }
 
   return (
-    <div className="p-8 space-y-6">
-      <div>
-        <h1 className="text-3xl mb-2">Demand Forecast</h1>
-        <p className="text-gray-600">Predict future meal demand using historical data</p>
+    <div className="p-8 space-y-6 bg-gradient-to-br from-gray-50 to-purple-50 min-h-screen">
+      <div className="mb-6">
+        <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+          Demand Forecast
+        </h1>
+        <p className="text-gray-600 text-lg">Predict future meal demand using historical data</p>
       </div>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card>
+        <Card className="border-0 shadow-lg bg-gradient-to-br from-blue-500 to-cyan-500 text-white">
           <CardContent className="pt-6">
             <div className="flex items-center gap-4">
-              <BarChart3 className="w-12 h-12 text-blue-500" />
+              <div className="bg-white/20 p-3 rounded-full">
+                <BarChart3 className="w-10 h-10 text-white" />
+              </div>
               <div>
-                <p className="text-sm text-gray-600">Avg Daily Meals</p>
-                <p className="text-3xl">{stats.avgDailyMeals}</p>
+                <p className="text-sm text-blue-100 font-medium">Avg Daily Meals</p>
+                <p className="text-4xl font-bold">{stats.avgDailyMeals}</p>
+                <p className="text-xs text-blue-200 mt-1">servings</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className={`border-0 shadow-lg text-white ${
+          stats.trend === 'increasing' ? 'bg-gradient-to-br from-green-500 to-emerald-600' :
+          stats.trend === 'decreasing' ? 'bg-gradient-to-br from-red-500 to-rose-600' :
+          'bg-gradient-to-br from-gray-500 to-slate-600'
+        }`}>
           <CardContent className="pt-6">
             <div className="flex items-center gap-4">
-              <TrendingUp className={`w-12 h-12 ${
-                stats.trend === 'increasing' ? 'text-green-500' :
-                stats.trend === 'decreasing' ? 'text-red-500' :
-                'text-gray-500'
-              }`} />
+              <div className="bg-white/20 p-3 rounded-full">
+                <TrendingUp className="w-10 h-10 text-white" />
+              </div>
               <div>
-                <p className="text-sm text-gray-600">Trend</p>
-                <p className="text-2xl capitalize">{stats.trend}</p>
+                <p className={`text-sm font-medium ${
+                  stats.trend === 'increasing' ? 'text-green-100' :
+                  stats.trend === 'decreasing' ? 'text-red-100' :
+                  'text-gray-100'
+                }`}>Trend</p>
+                <p className="text-4xl font-bold capitalize">{stats.trend}</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-0 shadow-lg bg-gradient-to-br from-purple-500 to-pink-600 text-white">
           <CardContent className="pt-6">
             <div className="flex items-center gap-4">
-              <Calendar className="w-12 h-12 text-purple-500" />
+              <div className="bg-white/20 p-3 rounded-full">
+                <Calendar className="w-10 h-10 text-white" />
+              </div>
               <div>
-                <p className="text-sm text-gray-600">Next Week Total</p>
-                <p className="text-3xl">{stats.nextWeekTotal}</p>
+                <p className="text-sm text-purple-100 font-medium">Next Week Total</p>
+                <p className="text-4xl font-bold">{stats.nextWeekTotal}</p>
+                <p className="text-xs text-purple-200 mt-1">predicted</p>
               </div>
             </div>
           </CardContent>
@@ -182,35 +196,72 @@ export const Forecast: React.FC = () => {
       </div>
 
       {/* Forecast Chart */}
-      <Card>
-        <CardHeader>
-          <CardTitle>14-Day Meal Forecast</CardTitle>
-          <p className="text-sm text-gray-600">Last 7 days (actual) vs Next 7 days (predicted)</p>
+      <Card className="shadow-lg">
+        <CardHeader className="bg-gradient-to-r from-purple-50 to-pink-50 border-b">
+          <CardTitle className="text-2xl font-bold text-gray-800">14-Day Meal Forecast</CardTitle>
+          <p className="text-sm text-gray-600 mt-1">Last 7 days (actual) vs Next 7 days (predicted)</p>
         </CardHeader>
-        <CardContent>
-          <ResponsiveContainer width="100%" height={400}>
+        <CardContent className="pt-6">
+          <ResponsiveContainer width="100%" height={450}>
             <LineChart data={forecastData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="date" />
-              <YAxis />
-              <Tooltip />
-              <Legend />
+              <defs>
+                <linearGradient id="colorActual" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#3b82f6" stopOpacity={1}/>
+                  <stop offset="100%" stopColor="#60a5fa" stopOpacity={0.8}/>
+                </linearGradient>
+                <linearGradient id="colorPredicted" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#8b5cf6" stopOpacity={1}/>
+                  <stop offset="100%" stopColor="#a78bfa" stopOpacity={0.8}/>
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" opacity={0.5} />
+              <XAxis 
+                dataKey="date" 
+                stroke="#6b7280"
+                style={{ fontSize: '12px', fontWeight: 600 }}
+                tick={{ fill: '#4b5563' }}
+              />
+              <YAxis 
+                stroke="#6b7280"
+                style={{ fontSize: '12px', fontWeight: 600 }}
+                tick={{ fill: '#4b5563' }}
+              />
+              <Tooltip 
+                contentStyle={{ 
+                  backgroundColor: '#fff', 
+                  border: '2px solid #8b5cf6',
+                  borderRadius: '12px',
+                  boxShadow: '0 8px 16px rgba(139, 92, 246, 0.2)',
+                  padding: '12px'
+                }}
+                labelStyle={{ color: '#6d28d9', fontWeight: 700, fontSize: '14px' }}
+                itemStyle={{ fontWeight: 600 }}
+                cursor={{ stroke: '#8b5cf6', strokeWidth: 2, strokeDasharray: '5 5' }}
+              />
+              <Legend 
+                wrapperStyle={{ paddingTop: '20px' }}
+                iconType="line"
+              />
               <Line 
                 type="monotone" 
                 dataKey="actual" 
-                stroke="#3b82f6" 
-                strokeWidth={2}
+                stroke="url(#colorActual)" 
+                strokeWidth={3}
                 name="Actual Meals"
-                dot={{ r: 4 }}
+                dot={{ r: 6, fill: '#3b82f6', strokeWidth: 2, stroke: '#fff' }}
+                activeDot={{ r: 8, fill: '#2563eb' }}
+                animationDuration={1000}
               />
               <Line 
                 type="monotone" 
                 dataKey="predicted" 
-                stroke="#8b5cf6" 
-                strokeWidth={2}
-                strokeDasharray="5 5"
+                stroke="url(#colorPredicted)" 
+                strokeWidth={3}
+                strokeDasharray="8 8"
                 name="Predicted Meals"
-                dot={{ r: 4 }}
+                dot={{ r: 6, fill: '#8b5cf6', strokeWidth: 2, stroke: '#fff' }}
+                activeDot={{ r: 8, fill: '#7c3aed' }}
+                animationDuration={1000}
               />
             </LineChart>
           </ResponsiveContainer>
@@ -218,26 +269,46 @@ export const Forecast: React.FC = () => {
       </Card>
 
       {/* Algorithm Info */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Forecasting Method</CardTitle>
+      <Card className="shadow-lg border-2 border-purple-200">
+        <CardHeader className="bg-gradient-to-r from-purple-50 to-indigo-50 border-b">
+          <CardTitle className="text-xl font-bold text-gray-800">Forecasting Method</CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="space-y-3 text-sm">
-            <p>
-              <strong>Algorithm:</strong> Moving Average with Trend Analysis
-            </p>
-            <p>
-              <strong>Window Size:</strong> 3 days (adjusts for recent patterns)
-            </p>
-            <p>
-              <strong>Trend Detection:</strong> Compares first and second half of historical data
-            </p>
-            <ul className="list-disc list-inside ml-4 space-y-1 text-gray-600">
-              <li>Increasing trend: +5% adjustment per day</li>
-              <li>Decreasing trend: -5% adjustment per day</li>
-              <li>Stable trend: No adjustment</li>
-            </ul>
+        <CardContent className="pt-6">
+          <div className="space-y-4 text-sm">
+            <div className="flex items-start gap-3">
+              <div className="w-2 h-2 rounded-full bg-blue-500 mt-2"></div>
+              <p>
+                <strong className="text-blue-700">Algorithm:</strong> Moving Average with Trend Analysis
+              </p>
+            </div>
+            <div className="flex items-start gap-3">
+              <div className="w-2 h-2 rounded-full bg-purple-500 mt-2"></div>
+              <p>
+                <strong className="text-purple-700">Window Size:</strong> 3 days (adjusts for recent patterns)
+              </p>
+            </div>
+            <div className="flex items-start gap-3">
+              <div className="w-2 h-2 rounded-full bg-pink-500 mt-2"></div>
+              <p>
+                <strong className="text-pink-700">Trend Detection:</strong> Compares first and second half of historical data
+              </p>
+            </div>
+            <div className="mt-4 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border border-purple-200">
+              <ul className="space-y-2 text-gray-700">
+                <li className="flex items-center gap-2">
+                  <span className="text-green-600 font-bold">↑</span>
+                  <span><strong>Increasing trend:</strong> +5% adjustment per day</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="text-red-600 font-bold">↓</span>
+                  <span><strong>Decreasing trend:</strong> -5% adjustment per day</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="text-gray-600 font-bold">→</span>
+                  <span><strong>Stable trend:</strong> No adjustment</span>
+                </li>
+              </ul>
+            </div>
           </div>
         </CardContent>
       </Card>

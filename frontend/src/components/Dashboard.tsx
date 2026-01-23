@@ -199,35 +199,47 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
             <BarChart data={mealData}>
               <defs>
                 <linearGradient id="colorMeals" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.9}/>
-                  <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0.7}/>
+                  <stop offset="0%" stopColor="#3b82f6" stopOpacity={1}/>
+                  <stop offset="50%" stopColor="#8b5cf6" stopOpacity={0.9}/>
+                  <stop offset="100%" stopColor="#ec4899" stopOpacity={0.8}/>
+                </linearGradient>
+                <linearGradient id="colorMealsHover" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#2563eb" stopOpacity={1}/>
+                  <stop offset="50%" stopColor="#7c3aed" stopOpacity={0.9}/>
+                  <stop offset="100%" stopColor="#db2777" stopOpacity={0.8}/>
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" opacity={0.5} />
               <XAxis 
                 dataKey="date" 
                 stroke="#6b7280"
-                style={{ fontSize: '12px', fontWeight: 500 }}
+                style={{ fontSize: '12px', fontWeight: 600 }}
+                tick={{ fill: '#4b5563' }}
               />
               <YAxis 
                 stroke="#6b7280"
-                style={{ fontSize: '12px', fontWeight: 500 }}
+                style={{ fontSize: '12px', fontWeight: 600 }}
+                tick={{ fill: '#4b5563' }}
               />
               <Tooltip 
                 contentStyle={{ 
                   backgroundColor: '#fff', 
-                  border: '1px solid #e5e7eb',
-                  borderRadius: '8px',
-                  boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+                  border: '2px solid #3b82f6',
+                  borderRadius: '12px',
+                  boxShadow: '0 8px 16px rgba(59, 130, 246, 0.2)',
+                  padding: '12px'
                 }}
-                labelStyle={{ color: '#374151', fontWeight: 600 }}
+                labelStyle={{ color: '#1e40af', fontWeight: 700, fontSize: '14px' }}
+                itemStyle={{ color: '#3b82f6', fontWeight: 600 }}
+                cursor={{ fill: 'rgba(59, 130, 246, 0.1)' }}
               />
               <Bar 
                 dataKey="meals" 
                 fill="url(#colorMeals)" 
-                radius={[8, 8, 0, 0]}
+                radius={[10, 10, 0, 0]}
                 stroke="#2563eb"
-                strokeWidth={1}
+                strokeWidth={2}
+                animationDuration={1000}
               />
             </BarChart>
           </ResponsiveContainer>
