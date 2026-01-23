@@ -280,8 +280,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
                   cx="50%"
                   cy="50%"
                   labelLine={false}
-                  label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                  outerRadius={100}
+                  label={false}
+                  outerRadius={110}
                   fill="#8884d8"
                   dataKey="value"
                   animationDuration={1000}
@@ -306,14 +306,19 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
                     border: '2px solid #8b5cf6',
                     borderRadius: '12px',
                     boxShadow: '0 8px 16px rgba(139, 92, 246, 0.2)',
-                    padding: '12px'
+                    padding: '10px',
+                    fontSize: '12px'
                   }}
+                  itemStyle={{ fontSize: '12px', fontWeight: 600 }}
+                  labelStyle={{ fontSize: '12px', fontWeight: 600 }}
                   formatter={(value: number) => [`${value} servings`, 'Quantity']}
                 />
                 <Legend 
                   verticalAlign="bottom" 
                   height={36}
-                  formatter={(value) => <span style={{ color: '#374151', fontWeight: 600 }}>{value}</span>}
+                  wrapperStyle={{ fontSize: '11px' }}
+                  iconSize={10}
+                  formatter={(value) => <span style={{ color: '#374151', fontWeight: 500, fontSize: '11px' }}>{value}</span>}
                 />
               </PieChart>
             </ResponsiveContainer>
