@@ -8,7 +8,7 @@ import { Label } from './ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Badge } from './ui/badge';
 import { ChefHat, UtensilsCrossed, Package } from 'lucide-react';
-import { toast } from 'sonner@2.0.3';
+import { toast } from 'sonner';
 
 interface Ingredient {
   id: string;
@@ -41,6 +41,8 @@ export const MealRecording: React.FC = () => {
   const [availableIngredients, setAvailableIngredients] = useState<Ingredient[]>([]);
   const [loading, setLoading] = useState(false);
   const [recentMeals, setRecentMeals] = useState<any[]>([]);
+  const [recipesLoading, setRecipesLoading] = useState(true);
+  const [recipesError, setRecipesError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchRecipes();
@@ -49,15 +51,27 @@ export const MealRecording: React.FC = () => {
   }, []);
 
   const fetchRecipes = async () => {
+    setRecipesLoading(true);
+    setRecipesError(null);
     try {
       const snapshot = await getDocs(collection(db, 'recipes'));
       const recipes = snapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
       } as Recipe));
+      
+      console.log('Recipes fetched:', recipes.length, recipes);
       setAvailableRecipes(recipes);
-    } catch (error) {
+      
+      if (recipes.length === 0) {
+        setRecipesError('No recipes found. Please run populate-recipes.js script first.');
+      }
+    } catch (error: any) {
       console.error('Error fetching recipes:', error);
+      setRecipesError(`Failed to load recipes: ${error.message}`);
+      toast.error('Failed to load recipes. Check console for details.');
+    } finally {
+      setRecipesLoading(false);
     }
   };
 
@@ -158,7 +172,10 @@ export const MealRecording: React.FC = () => {
         }
       }
 
-      toast.success(`${selectedRecipe.name} recorded successfully! ${servings} servings prepared.`);
+      toast.success(
+        `${selectedRecipe.name} recorded! ${servings} servings prepared. Ingredients automatically deducted from inventory.`,
+        { duration: 5000 }
+      );
       setSelectedRecipeId('');
       setSelectedRecipe(null);
       setMealQuantity('');
@@ -198,31 +215,70 @@ export const MealRecording: React.FC = () => {
             </CardHeader>
             <CardContent className="pt-6">
               <form onSubmit={handleSubmit} className="space-y-6">
+                {/* Automatic Deduction Notice */}
+                <div className="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-300 rounded-lg p-4 mb-4">
+                  <div className="flex items-start gap-3">
+                    <div className="bg-green-500 rounded-full p-2 mt-0.5">
+                      <Package className="w-5 h-5 text-white" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-bold text-green-800 mb-1">Automatic Ingredient Deduction</h3>
+                      <p className="text-sm text-green-700">
+                        When you record a meal, ingredients are <strong>automatically deducted</strong> from inventory. 
+                        Each serving uses a <strong>fixed amount per ingredient</strong> - multiply by number of servings to get total deduction.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="recipe" className="text-base font-semibold">Select Meal</Label>
-                    <Select
-                      value={selectedRecipeId}
-                      onValueChange={handleRecipeSelect}
-                      required
-                    >
-                      <SelectTrigger className="h-12">
-                        <SelectValue placeholder="Choose a meal recipe..." />
-                      </SelectTrigger>
-                      <SelectContent className="max-h-[400px]">
-                        {availableRecipes.map(recipe => (
-                          <SelectItem key={recipe.id} value={recipe.id}>
-                            <div className="flex items-center gap-2">
-                              <UtensilsCrossed className="w-4 h-4 text-blue-600" />
-                              <span className="font-medium">{recipe.name}</span>
-                              <Badge variant="outline" className="ml-2 text-xs">{recipe.category}</Badge>
+                    <Label htmlFor="recipe" className="text-base font-semibold">Select Meal Recipe</Label>
+                    {recipesLoading ? (
+                      <div className="h-12 flex items-center justify-center border rounded-md bg-gray-50">
+                        <span className="text-sm text-gray-500">Loading recipes...</span>
+                      </div>
+                    ) : recipesError ? (
+                      <div className="h-12 flex items-center justify-center border-2 border-red-300 rounded-md bg-red-50">
+                        <span className="text-sm text-red-600">{recipesError}</span>
+                      </div>
+                    ) : (
+                      <Select
+                        value={selectedRecipeId}
+                        onValueChange={handleRecipeSelect}
+                        required
+                        disabled={availableRecipes.length === 0}
+                      >
+                        <SelectTrigger className="h-12 text-base">
+                          <SelectValue placeholder={availableRecipes.length === 0 ? "No recipes available" : "Choose a meal recipe..."} />
+                        </SelectTrigger>
+                        <SelectContent className="max-h-[400px]">
+                          {availableRecipes.length === 0 ? (
+                            <div className="p-4 text-center text-sm text-gray-500">
+                              No recipes found. Please add recipes first.
                             </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                          ) : (
+                            availableRecipes.map(recipe => (
+                              <SelectItem key={recipe.id} value={recipe.id} className="py-3">
+                                <div className="flex items-center gap-2 w-full">
+                                  <UtensilsCrossed className="w-5 h-5 text-green-600 flex-shrink-0" />
+                                  <div className="flex-1 min-w-0">
+                                    <span className="font-semibold text-gray-900 block">{recipe.name}</span>
+                                    <span className="text-xs text-gray-500">{recipe.description}</span>
+                                  </div>
+                                  <Badge variant="outline" className="ml-2 text-xs flex-shrink-0">{recipe.category}</Badge>
+                                </div>
+                              </SelectItem>
+                            ))
+                          )}
+                        </SelectContent>
+                      </Select>
+                    )}
                     {selectedRecipe && (
-                      <p className="text-sm text-gray-600 mt-1">{selectedRecipe.description}</p>
+                      <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded">
+                        <p className="text-sm font-medium text-blue-900">{selectedRecipe.name}</p>
+                        <p className="text-xs text-blue-700">{selectedRecipe.description}</p>
+                      </div>
                     )}
                   </div>
 
@@ -244,45 +300,80 @@ export const MealRecording: React.FC = () => {
                 {/* Ingredients List */}
                 {selectedRecipe && (
                   <div className="space-y-4">
-                    <div className="flex items-center gap-2 mb-3">
-                      <Package className="w-5 h-5 text-gray-600" />
-                      <Label className="text-base font-semibold">Ingredients Required (per serving)</Label>
+                    <div className="bg-yellow-50 border-2 border-yellow-300 rounded-lg p-3 mb-4">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Package className="w-5 h-5 text-yellow-700" />
+                        <Label className="text-base font-bold text-yellow-900">Ingredient Deduction Details</Label>
+                      </div>
+                      <p className="text-sm text-yellow-800">
+                        Each ingredient has a <strong>fixed amount per serving</strong>. 
+                        Total deduction = <strong>Amount per serving × Number of servings</strong>
+                      </p>
                     </div>
                     
-                    <div className="bg-gray-50 rounded-lg p-4 space-y-3 border-2 border-blue-100">
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between p-2 bg-gray-100 rounded">
+                        <span className="text-sm font-semibold text-gray-700">Ingredient</span>
+                        <span className="text-sm font-semibold text-gray-700">Per Serving</span>
+                        {mealQuantity && (
+                          <span className="text-sm font-semibold text-gray-700">Total Needed ({mealQuantity} servings)</span>
+                        )}
+                        <span className="text-sm font-semibold text-gray-700">Available</span>
+                      </div>
+                      
                       {selectedRecipe.ingredients.map((ing, index) => {
                         const stock = getIngredientStock(ing.ingredientId);
-                        const totalNeeded = ing.quantity * (parseInt(mealQuantity) || 0);
+                        const servings = parseInt(mealQuantity) || 0;
+                        const totalNeeded = ing.quantity * servings;
                         const hasStock = stock && stock.quantity >= totalNeeded;
+                        const willDeduct = totalNeeded > 0;
                         
                         return (
                           <div 
                             key={index} 
-                            className={`flex items-center justify-between p-3 rounded-lg border ${
-                              hasStock ? 'bg-white border-green-200' : 'bg-red-50 border-red-200'
+                            className={`grid ${mealQuantity ? 'grid-cols-4' : 'grid-cols-3'} gap-3 p-4 rounded-lg border-2 ${
+                              hasStock ? 'bg-white border-green-300' : 'bg-red-50 border-red-300'
                             }`}
                           >
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2">
-                                <span className="font-medium text-gray-800">{ing.ingredientName}</span>
-                                {!hasStock && stock && (
-                                  <Badge variant="destructive" className="text-xs">
-                                    Low Stock
-                                  </Badge>
-                                )}
+                            <div className="flex items-center gap-2">
+                              <span className="font-semibold text-gray-900">{ing.ingredientName}</span>
+                              {!hasStock && stock && (
+                                <Badge variant="destructive" className="text-xs">Low Stock</Badge>
+                              )}
+                            </div>
+                            
+                            <div className="text-sm">
+                              <div className="font-medium text-blue-700">
+                                {ing.quantity} {ing.unit}
                               </div>
-                              <div className="text-sm text-gray-600 mt-1">
-                                {ing.quantity} {ing.unit} per serving
-                                {mealQuantity && (
-                                  <span className="ml-2 font-semibold text-blue-600">
-                                    • Total: {totalNeeded.toFixed(2)} {ing.unit}
-                                  </span>
-                                )}
-                              </div>
-                              {stock && (
-                                <div className="text-xs text-gray-500 mt-1">
-                                  Available: {stock.quantity} {stock.unit}
+                              <div className="text-xs text-gray-500">per serving</div>
+                            </div>
+                            
+                            {mealQuantity && (
+                              <div className="text-sm">
+                                <div className="font-bold text-green-700">
+                                  {totalNeeded.toFixed(2)} {ing.unit}
                                 </div>
+                                <div className="text-xs text-gray-500">
+                                  {ing.quantity} × {servings} = {totalNeeded.toFixed(2)}
+                                </div>
+                              </div>
+                            )}
+                            
+                            <div className="text-sm">
+                              {stock ? (
+                                <>
+                                  <div className={`font-medium ${hasStock ? 'text-green-700' : 'text-red-700'}`}>
+                                    {stock.quantity} {stock.unit}
+                                  </div>
+                                  {willDeduct && (
+                                    <div className="text-xs text-gray-500">
+                                      After: {(stock.quantity - totalNeeded).toFixed(2)} {stock.unit}
+                                    </div>
+                                  )}
+                                </>
+                              ) : (
+                                <span className="text-gray-400">N/A</span>
                               )}
                             </div>
                           </div>
@@ -291,11 +382,23 @@ export const MealRecording: React.FC = () => {
                     </div>
 
                     {mealQuantity && selectedRecipe && (
-                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                        <p className="text-sm text-blue-800">
-                          <strong>{mealQuantity} servings</strong> of <strong>{selectedRecipe.name}</strong> will be prepared.
-                          Ingredients will be automatically deducted from inventory.
-                        </p>
+                      <div className="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-400 rounded-lg p-4">
+                        <div className="flex items-start gap-3">
+                          <div className="bg-green-500 rounded-full p-2 mt-0.5">
+                            <UtensilsCrossed className="w-5 h-5 text-white" />
+                          </div>
+                          <div className="flex-1">
+                            <h4 className="font-bold text-green-900 mb-2">
+                              Ready to Record: {selectedRecipe.name}
+                            </h4>
+                            <p className="text-sm text-green-800 mb-2">
+                              <strong>{mealQuantity} servings</strong> will be prepared.
+                            </p>
+                            <p className="text-sm font-semibold text-green-900 bg-white/50 p-2 rounded">
+                              ⚡ Ingredients will be <strong>automatically deducted</strong> from inventory when you click "Record Meal"
+                            </p>
+                          </div>
+                        </div>
                       </div>
                     )}
                   </div>
