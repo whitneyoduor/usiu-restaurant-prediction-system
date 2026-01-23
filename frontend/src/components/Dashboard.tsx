@@ -190,7 +190,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
 
       {/* Chart */}
       <Card className="shadow-lg">
-        <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 border-b">
+        <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50 border-b">
           <CardTitle className="text-2xl font-bold text-gray-800">Meals Recorded - Last 7 Days</CardTitle>
           <p className="text-sm text-gray-600 mt-1">Daily meal serving trends</p>
         </CardHeader>
@@ -199,14 +199,14 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
             <BarChart data={mealData}>
               <defs>
                 <linearGradient id="colorMeals" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#3b82f6" stopOpacity={1}/>
-                  <stop offset="50%" stopColor="#8b5cf6" stopOpacity={0.9}/>
-                  <stop offset="100%" stopColor="#ec4899" stopOpacity={0.8}/>
+                  <stop offset="0%" stopColor="#10b981" stopOpacity={1}/>
+                  <stop offset="50%" stopColor="#34d399" stopOpacity={0.9}/>
+                  <stop offset="100%" stopColor="#6ee7b7" stopOpacity={0.8}/>
                 </linearGradient>
                 <linearGradient id="colorMealsHover" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#2563eb" stopOpacity={1}/>
-                  <stop offset="50%" stopColor="#7c3aed" stopOpacity={0.9}/>
-                  <stop offset="100%" stopColor="#db2777" stopOpacity={0.8}/>
+                  <stop offset="0%" stopColor="#059669" stopOpacity={1}/>
+                  <stop offset="50%" stopColor="#10b981" stopOpacity={0.9}/>
+                  <stop offset="100%" stopColor="#34d399" stopOpacity={0.8}/>
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" opacity={0.5} />
@@ -224,20 +224,20 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
               <Tooltip 
                 contentStyle={{ 
                   backgroundColor: '#fff', 
-                  border: '2px solid #3b82f6',
+                  border: '2px solid #10b981',
                   borderRadius: '12px',
-                  boxShadow: '0 8px 16px rgba(59, 130, 246, 0.2)',
+                  boxShadow: '0 8px 16px rgba(16, 185, 129, 0.2)',
                   padding: '12px'
                 }}
-                labelStyle={{ color: '#1e40af', fontWeight: 700, fontSize: '14px' }}
-                itemStyle={{ color: '#3b82f6', fontWeight: 600 }}
-                cursor={{ fill: 'rgba(59, 130, 246, 0.1)' }}
+                labelStyle={{ color: '#059669', fontWeight: 700, fontSize: '14px' }}
+                itemStyle={{ color: '#10b981', fontWeight: 600 }}
+                cursor={{ fill: 'rgba(16, 185, 129, 0.1)' }}
               />
               <Bar 
                 dataKey="meals" 
                 fill="url(#colorMeals)" 
                 radius={[10, 10, 0, 0]}
-                stroke="#2563eb"
+                stroke="#059669"
                 strokeWidth={2}
                 animationDuration={1000}
               />

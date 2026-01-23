@@ -197,7 +197,7 @@ export const Forecast: React.FC = () => {
 
       {/* Forecast Chart */}
       <Card className="shadow-lg">
-        <CardHeader className="bg-gradient-to-r from-purple-50 to-pink-50 border-b">
+        <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50 border-b">
           <CardTitle className="text-2xl font-bold text-gray-800">14-Day Meal Forecast</CardTitle>
           <p className="text-sm text-gray-600 mt-1">Last 7 days (actual) vs Next 7 days (predicted)</p>
         </CardHeader>
@@ -206,12 +206,12 @@ export const Forecast: React.FC = () => {
             <LineChart data={forecastData}>
               <defs>
                 <linearGradient id="colorActual" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#3b82f6" stopOpacity={1}/>
-                  <stop offset="100%" stopColor="#60a5fa" stopOpacity={0.8}/>
+                  <stop offset="0%" stopColor="#10b981" stopOpacity={1}/>
+                  <stop offset="100%" stopColor="#34d399" stopOpacity={0.8}/>
                 </linearGradient>
                 <linearGradient id="colorPredicted" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#8b5cf6" stopOpacity={1}/>
-                  <stop offset="100%" stopColor="#a78bfa" stopOpacity={0.8}/>
+                  <stop offset="0%" stopColor="#059669" stopOpacity={1}/>
+                  <stop offset="100%" stopColor="#10b981" stopOpacity={0.8}/>
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" opacity={0.5} />
@@ -229,14 +229,14 @@ export const Forecast: React.FC = () => {
               <Tooltip 
                 contentStyle={{ 
                   backgroundColor: '#fff', 
-                  border: '2px solid #8b5cf6',
+                  border: '2px solid #10b981',
                   borderRadius: '12px',
-                  boxShadow: '0 8px 16px rgba(139, 92, 246, 0.2)',
+                  boxShadow: '0 8px 16px rgba(16, 185, 129, 0.2)',
                   padding: '12px'
                 }}
-                labelStyle={{ color: '#6d28d9', fontWeight: 700, fontSize: '14px' }}
+                labelStyle={{ color: '#059669', fontWeight: 700, fontSize: '14px' }}
                 itemStyle={{ fontWeight: 600 }}
-                cursor={{ stroke: '#8b5cf6', strokeWidth: 2, strokeDasharray: '5 5' }}
+                cursor={{ stroke: '#10b981', strokeWidth: 2, strokeDasharray: '5 5' }}
               />
               <Legend 
                 wrapperStyle={{ paddingTop: '20px' }}
@@ -248,8 +248,8 @@ export const Forecast: React.FC = () => {
                 stroke="url(#colorActual)" 
                 strokeWidth={3}
                 name="Actual Meals"
-                dot={{ r: 6, fill: '#3b82f6', strokeWidth: 2, stroke: '#fff' }}
-                activeDot={{ r: 8, fill: '#2563eb' }}
+                dot={{ r: 6, fill: '#10b981', strokeWidth: 2, stroke: '#fff' }}
+                activeDot={{ r: 8, fill: '#059669' }}
                 animationDuration={1000}
               />
               <Line 
@@ -259,8 +259,8 @@ export const Forecast: React.FC = () => {
                 strokeWidth={3}
                 strokeDasharray="8 8"
                 name="Predicted Meals"
-                dot={{ r: 6, fill: '#8b5cf6', strokeWidth: 2, stroke: '#fff' }}
-                activeDot={{ r: 8, fill: '#7c3aed' }}
+                dot={{ r: 6, fill: '#059669', strokeWidth: 2, stroke: '#fff' }}
+                activeDot={{ r: 8, fill: '#047857' }}
                 animationDuration={1000}
               />
             </LineChart>
