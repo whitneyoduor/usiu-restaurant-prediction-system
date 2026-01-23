@@ -4,7 +4,7 @@ import { Card, CardHeader, CardTitle, CardContent } from './ui/card';
 import { Button } from './ui/button';
 import { collection, query, where, getDocs, Timestamp } from 'firebase/firestore';
 import { db } from '../lib/firebase';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 import { UtensilsCrossed, Package, AlertTriangle, TrendingUp } from 'lucide-react';
 
 interface DashboardProps {
@@ -20,6 +20,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
     totalUsers: 0,
   });
   const [mealData, setMealData] = useState<any[]>([]);
+  const [pieChartData, setPieChartData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -68,18 +69,34 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
       );
       const weekMealsSnapshot = await getDocs(weekMealsQuery);
       
-      // Group by date
+      // Group by date for bar chart
       const mealsByDate: { [key: string]: number } = {};
+      // Group by meal name for pie chart
+      const mealsByName: { [key: string]: number } = {};
+      
       weekMealsSnapshot.docs.forEach(doc => {
         const data = doc.data();
         const date = data.date.toDate().toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-        mealsByDate[date] = (mealsByDate[date] || 0) + (data.quantity || 0);
+        const mealName = data.name || 'Unknown';
+        const quantity = data.quantity || 0;
+        
+        mealsByDate[date] = (mealsByDate[date] || 0) + quantity;
+        mealsByName[mealName] = (mealsByName[mealName] || 0) + quantity;
       });
 
       const chartData = Object.entries(mealsByDate).map(([date, quantity]) => ({
         date,
         meals: quantity,
       }));
+
+      // Prepare pie chart data with colors
+      const pieData = Object.entries(mealsByName)
+        .map(([name, value]) => ({
+          name,
+          value,
+        }))
+        .sort((a, b) => b.value - a.value)
+        .slice(0, 8); // Top 8 meals
 
       setStats({
         mealsToday: totalMealsToday,
@@ -88,6 +105,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
         totalUsers,
       });
       setMealData(chartData);
+      setPieChartData(pieData);
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
     } finally {
@@ -188,63 +206,120 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
         )}
       </div>
 
-      {/* Chart */}
-      <Card className="shadow-lg">
-        <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50 border-b">
-          <CardTitle className="text-2xl font-bold text-gray-800">Meals Recorded - Last 7 Days</CardTitle>
-          <p className="text-sm text-gray-600 mt-1">Daily meal serving trends</p>
-        </CardHeader>
-        <CardContent className="pt-6">
-          <ResponsiveContainer width="100%" height={350}>
-            <BarChart data={mealData}>
-              <defs>
-                <linearGradient id="colorMeals" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#10b981" stopOpacity={1}/>
-                  <stop offset="50%" stopColor="#34d399" stopOpacity={0.9}/>
-                  <stop offset="100%" stopColor="#6ee7b7" stopOpacity={0.8}/>
-                </linearGradient>
-                <linearGradient id="colorMealsHover" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#059669" stopOpacity={1}/>
-                  <stop offset="50%" stopColor="#10b981" stopOpacity={0.9}/>
-                  <stop offset="100%" stopColor="#34d399" stopOpacity={0.8}/>
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" opacity={0.5} />
-              <XAxis 
-                dataKey="date" 
-                stroke="#6b7280"
-                style={{ fontSize: '12px', fontWeight: 600 }}
-                tick={{ fill: '#4b5563' }}
-              />
-              <YAxis 
-                stroke="#6b7280"
-                style={{ fontSize: '12px', fontWeight: 600 }}
-                tick={{ fill: '#4b5563' }}
-              />
-              <Tooltip 
-                contentStyle={{ 
-                  backgroundColor: '#fff', 
-                  border: '2px solid #10b981',
-                  borderRadius: '12px',
-                  boxShadow: '0 8px 16px rgba(16, 185, 129, 0.2)',
-                  padding: '12px'
-                }}
-                labelStyle={{ color: '#059669', fontWeight: 700, fontSize: '14px' }}
-                itemStyle={{ color: '#10b981', fontWeight: 600 }}
-                cursor={{ fill: 'rgba(16, 185, 129, 0.1)' }}
-              />
-              <Bar 
-                dataKey="meals" 
-                fill="url(#colorMeals)" 
-                radius={[10, 10, 0, 0]}
-                stroke="#059669"
-                strokeWidth={2}
-                animationDuration={1000}
-              />
-            </BarChart>
-          </ResponsiveContainer>
-        </CardContent>
-      </Card>
+      {/* Charts - Bar and Pie */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Bar Chart */}
+        <Card className="shadow-lg">
+          <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50 border-b">
+            <CardTitle className="text-2xl font-bold text-gray-800">Meals Recorded - Last 7 Days</CardTitle>
+            <p className="text-sm text-gray-600 mt-1">Daily meal serving trends</p>
+          </CardHeader>
+          <CardContent className="pt-6">
+            <ResponsiveContainer width="100%" height={350}>
+              <BarChart data={mealData}>
+                <defs>
+                  <linearGradient id="colorMeals" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#10b981" stopOpacity={1}/>
+                    <stop offset="50%" stopColor="#34d399" stopOpacity={0.9}/>
+                    <stop offset="100%" stopColor="#6ee7b7" stopOpacity={0.8}/>
+                  </linearGradient>
+                  <linearGradient id="colorMealsHover" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#059669" stopOpacity={1}/>
+                    <stop offset="50%" stopColor="#10b981" stopOpacity={0.9}/>
+                    <stop offset="100%" stopColor="#34d399" stopOpacity={0.8}/>
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" opacity={0.5} />
+                <XAxis 
+                  dataKey="date" 
+                  stroke="#6b7280"
+                  style={{ fontSize: '12px', fontWeight: 600 }}
+                  tick={{ fill: '#4b5563' }}
+                />
+                <YAxis 
+                  stroke="#6b7280"
+                  style={{ fontSize: '12px', fontWeight: 600 }}
+                  tick={{ fill: '#4b5563' }}
+                />
+                <Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: '#fff', 
+                    border: '2px solid #10b981',
+                    borderRadius: '12px',
+                    boxShadow: '0 8px 16px rgba(16, 185, 129, 0.2)',
+                    padding: '12px'
+                  }}
+                  labelStyle={{ color: '#059669', fontWeight: 700, fontSize: '14px' }}
+                  itemStyle={{ color: '#10b981', fontWeight: 600 }}
+                  cursor={{ fill: 'rgba(16, 185, 129, 0.1)' }}
+                />
+                <Bar 
+                  dataKey="meals" 
+                  fill="url(#colorMeals)" 
+                  radius={[10, 10, 0, 0]}
+                  stroke="#059669"
+                  strokeWidth={2}
+                  animationDuration={1000}
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        {/* Pie Chart */}
+        <Card className="shadow-lg">
+          <CardHeader className="bg-gradient-to-r from-purple-50 to-pink-50 border-b">
+            <CardTitle className="text-2xl font-bold text-gray-800">Meal Distribution - Last 7 Days</CardTitle>
+            <p className="text-sm text-gray-600 mt-1">Top meals by servings</p>
+          </CardHeader>
+          <CardContent className="pt-6">
+            <ResponsiveContainer width="100%" height={350}>
+              <PieChart>
+                <Pie
+                  data={pieChartData}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                  outerRadius={100}
+                  fill="#8884d8"
+                  dataKey="value"
+                  animationDuration={1000}
+                >
+                  {pieChartData.map((entry, index) => {
+                    const colors = [
+                      '#10b981', // Green
+                      '#3b82f6', // Blue
+                      '#8b5cf6', // Purple
+                      '#f59e0b', // Amber
+                      '#ef4444', // Red
+                      '#06b6d4', // Cyan
+                      '#f97316', // Orange
+                      '#ec4899', // Pink
+                    ];
+                    return <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />;
+                  })}
+                </Pie>
+                <Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: '#fff', 
+                    border: '2px solid #8b5cf6',
+                    borderRadius: '12px',
+                    boxShadow: '0 8px 16px rgba(139, 92, 246, 0.2)',
+                    padding: '12px'
+                  }}
+                  formatter={(value: number) => [`${value} servings`, 'Quantity']}
+                />
+                <Legend 
+                  verticalAlign="bottom" 
+                  height={36}
+                  formatter={(value) => <span style={{ color: '#374151', fontWeight: 600 }}>{value}</span>}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+      </div>
 
       {/* Quick Actions */}
       <div>
