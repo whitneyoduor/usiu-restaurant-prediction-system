@@ -104,59 +104,84 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
   }
 
   return (
-    <div className="p-8 space-y-6">
-      <div>
-        <h1 className="text-3xl mb-2">Dashboard</h1>
-        <p className="text-gray-600">Welcome back, {userData?.email}</p>
+    <div className="p-8 space-y-6 bg-gradient-to-br from-gray-50 to-blue-50 min-h-screen">
+      <div className="mb-6">
+        <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+          Dashboard
+        </h1>
+        <p className="text-gray-600 text-lg">Welcome back, <span className="font-semibold text-gray-800">{userData?.email}</span></p>
+        <div className="mt-2 flex items-center gap-2">
+          <div className={`px-3 py-1 rounded-full text-xs font-semibold ${
+            userData?.role === 'admin' ? 'bg-purple-100 text-purple-700' :
+            userData?.role === 'chef' ? 'bg-blue-100 text-blue-700' :
+            'bg-green-100 text-green-700'
+          }`}>
+            {userData?.role?.toUpperCase()}
+          </div>
+          <span className="text-sm text-gray-500">•</span>
+          <span className="text-sm text-gray-600">{new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
+        </div>
       </div>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card>
+        <Card className="border-0 shadow-lg bg-gradient-to-br from-blue-500 to-blue-600 text-white">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Meals Today</p>
-                <p className="text-3xl mt-2">{stats.mealsToday}</p>
+                <p className="text-sm text-blue-100 font-medium">Meals Today</p>
+                <p className="text-4xl font-bold mt-2">{stats.mealsToday}</p>
+                <p className="text-xs text-blue-200 mt-1">servings</p>
               </div>
-              <UtensilsCrossed className="w-12 h-12 text-blue-500" />
+              <div className="bg-white/20 p-3 rounded-full">
+                <UtensilsCrossed className="w-10 h-10 text-white" />
+              </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-0 shadow-lg bg-gradient-to-br from-green-500 to-emerald-600 text-white">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Stock Items</p>
-                <p className="text-3xl mt-2">{stats.totalStock}</p>
+                <p className="text-sm text-green-100 font-medium">Stock Items</p>
+                <p className="text-4xl font-bold mt-2">{stats.totalStock}</p>
+                <p className="text-xs text-green-200 mt-1">ingredients</p>
               </div>
-              <Package className="w-12 h-12 text-green-500" />
+              <div className="bg-white/20 p-3 rounded-full">
+                <Package className="w-10 h-10 text-white" />
+              </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-0 shadow-lg bg-gradient-to-br from-orange-500 to-red-500 text-white">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Active Alerts</p>
-                <p className="text-3xl mt-2">{stats.alertsCount}</p>
+                <p className="text-sm text-orange-100 font-medium">Active Alerts</p>
+                <p className="text-4xl font-bold mt-2">{stats.alertsCount}</p>
+                <p className="text-xs text-orange-200 mt-1">low stock</p>
               </div>
-              <AlertTriangle className="w-12 h-12 text-orange-500" />
+              <div className="bg-white/20 p-3 rounded-full">
+                <AlertTriangle className="w-10 h-10 text-white" />
+              </div>
             </div>
           </CardContent>
         </Card>
 
         {userData?.role === 'admin' && (
-          <Card>
+          <Card className="border-0 shadow-lg bg-gradient-to-br from-purple-500 to-pink-600 text-white">
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Total Users</p>
-                  <p className="text-3xl mt-2">{stats.totalUsers}</p>
+                  <p className="text-sm text-purple-100 font-medium">Total Users</p>
+                  <p className="text-4xl font-bold mt-2">{stats.totalUsers}</p>
+                  <p className="text-xs text-purple-200 mt-1">registered</p>
                 </div>
-                <TrendingUp className="w-12 h-12 text-purple-500" />
+                <div className="bg-white/20 p-3 rounded-full">
+                  <TrendingUp className="w-10 h-10 text-white" />
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -164,18 +189,46 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
       </div>
 
       {/* Chart */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Meals Recorded - Last 7 Days</CardTitle>
+      <Card className="shadow-lg">
+        <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 border-b">
+          <CardTitle className="text-2xl font-bold text-gray-800">Meals Recorded - Last 7 Days</CardTitle>
+          <p className="text-sm text-gray-600 mt-1">Daily meal serving trends</p>
         </CardHeader>
-        <CardContent>
-          <ResponsiveContainer width="100%" height={300}>
+        <CardContent className="pt-6">
+          <ResponsiveContainer width="100%" height={350}>
             <BarChart data={mealData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="date" />
-              <YAxis />
-              <Tooltip />
-              <Bar dataKey="meals" fill="#3b82f6" />
+              <defs>
+                <linearGradient id="colorMeals" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.9}/>
+                  <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0.7}/>
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+              <XAxis 
+                dataKey="date" 
+                stroke="#6b7280"
+                style={{ fontSize: '12px', fontWeight: 500 }}
+              />
+              <YAxis 
+                stroke="#6b7280"
+                style={{ fontSize: '12px', fontWeight: 500 }}
+              />
+              <Tooltip 
+                contentStyle={{ 
+                  backgroundColor: '#fff', 
+                  border: '1px solid #e5e7eb',
+                  borderRadius: '8px',
+                  boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+                }}
+                labelStyle={{ color: '#374151', fontWeight: 600 }}
+              />
+              <Bar 
+                dataKey="meals" 
+                fill="url(#colorMeals)" 
+                radius={[8, 8, 0, 0]}
+                stroke="#2563eb"
+                strokeWidth={1}
+              />
             </BarChart>
           </ResponsiveContainer>
         </CardContent>
@@ -183,12 +236,12 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
 
       {/* Quick Actions */}
       <div>
-        <h2 className="text-xl mb-4">Quick Actions</h2>
+        <h2 className="text-2xl font-bold mb-4 text-gray-800">Quick Actions</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {(userData?.role === 'admin' || userData?.role === 'chef') && (
             <Button
               size="lg"
-              className="h-auto py-6"
+              className="h-auto py-6 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg hover:shadow-xl transition-all"
               onClick={() => onNavigate('meals')}
             >
               <UtensilsCrossed className="w-6 h-6 mr-3" />
@@ -199,7 +252,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
           <Button
             size="lg"
             variant="outline"
-            className="h-auto py-6"
+            className="h-auto py-6 border-2 border-green-500 text-green-700 hover:bg-green-50 hover:border-green-600 shadow-md hover:shadow-lg transition-all"
             onClick={() => onNavigate('inventory')}
           >
             <Package className="w-6 h-6 mr-3" />
@@ -210,7 +263,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
             <Button
               size="lg"
               variant="outline"
-              className="h-auto py-6 border-orange-500 text-orange-600 hover:bg-orange-50"
+              className="h-auto py-6 border-2 border-orange-500 text-orange-600 hover:bg-orange-50 hover:border-orange-600 shadow-md hover:shadow-lg transition-all animate-pulse"
               onClick={() => onNavigate('alerts')}
             >
               <AlertTriangle className="w-6 h-6 mr-3" />
