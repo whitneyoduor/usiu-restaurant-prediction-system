@@ -3,7 +3,7 @@ require('dotenv').config();
 
 async function updateMealData() {
   try {
-    console.log('\n🔄 Updating meal data to use recipe-based meals...\n');
+    console.log('\n🔄 Updating meal data to use recipe-based meals with smooth increasing trend...\n');
 
     // Step 1: Delete all old meals
     console.log('🗑️  Deleting old meal records...');
@@ -27,51 +27,76 @@ async function updateMealData() {
     console.log(`📝 Found ${recipes.length} recipes\n`);
 
     // Step 3: Create new meal records using recipes (last 7 days)
-    console.log('🍽️  Creating new meal records...');
+    console.log('🍽️  Creating new meal records with dummy data (smoothly increasing over time)...');
     const today = new Date();
-    const mealTypes = [
-      { recipeName: 'Chicken Curry', servings: [120, 135, 110, 125, 130, 115, 140] },
-      { recipeName: 'Spaghetti Bolognese', servings: [95, 105, 100, 110, 98, 102, 108] },
-      { recipeName: 'Fried Rice', servings: [85, 90, 88, 92, 87, 91, 89] },
-      { recipeName: 'Beef Stew', servings: [75, 80, 78, 82, 76, 79, 81] },
-      { recipeName: 'Grilled Chicken', servings: [65, 70, 68, 72, 66, 69, 71] },
-      { recipeName: 'Chicken Fried Rice', servings: [90, 95, 92, 97, 91, 94, 96] },
-      { recipeName: 'Scrambled Eggs', servings: [45, 50, 48, 52, 46, 49, 51] },
-      { recipeName: 'Pancakes', servings: [40, 45, 42, 47, 41, 44, 46] },
-      { recipeName: 'Omelette', servings: [35, 40, 38, 42, 36, 39, 41] },
-      { recipeName: 'Chicken Salad', servings: [55, 60, 58, 62, 56, 59, 61] },
-    ];
+
+    // We generate 30 days of history with a gently increasing daily total.
+    // This produces a very clear "increasing" trend and a high R² accuracy
+    // for the linear regression used in the Forecast page.
+    const DAYS_OF_HISTORY = 30;
+    const BASE_START = 80;      // starting daily total servings
+    const DAILY_INCREMENT = 4;  // how much the daily total should grow each day
 
     const meals = [];
-    
-    for (let day = 6; day >= 0; day--) {
+
+    // Helper weights to distribute daily total across several recipes
+    const baseWeights = [0.5, 0.3, 0.2];
+
+    for (let offset = DAYS_OF_HISTORY - 1; offset >= 0; offset--) {
+      // Oldest day is offset = DAYS_OF_HISTORY - 1, most recent (today) is offset = 0
       const date = new Date(today);
-      date.setDate(date.getDate() - day);
-      
-      // Create 2-3 meals per day
-      const mealsPerDay = Math.floor(Math.random() * 2) + 2;
-      const selectedMeals = mealTypes.sort(() => 0.5 - Math.random()).slice(0, mealsPerDay);
-      
-      for (let i = 0; i < selectedMeals.length; i++) {
-        const mealType = selectedMeals[i];
-        const recipe = recipes.find(r => r.name === mealType.recipeName);
-        
-        if (!recipe) {
-          console.log(`   ⚠️  Recipe "${mealType.recipeName}" not found, skipping...`);
-          continue;
+      date.setDate(date.getDate() - offset);
+
+      const dayIndex = DAYS_OF_HISTORY - 1 - offset; // 0 ... DAYS_OF_HISTORY-1
+
+      // Target total for this day grows linearly over time
+      const idealTotal = BASE_START + dayIndex * DAILY_INCREMENT;
+
+      // Add a small amount of noise so data is realistic but still highly linear
+      const noiseFactor = 0.15; // 15% max noise around the line
+      const noise = (Math.random() * 2 - 1) * noiseFactor * idealTotal; // ±15%
+      const totalForDay = Math.max(40, Math.round(idealTotal + noise));
+
+      // Choose 2–3 recipes for this day
+      const recipesPerDay = Math.min(3, Math.max(2, recipes.length));
+      const selectedRecipes = recipes
+        .slice()
+        .sort(() => 0.5 - Math.random())
+        .slice(0, recipesPerDay);
+
+      // Distribute totalForDay across the selected recipes
+      let remaining = totalForDay;
+
+      selectedRecipes.forEach((recipe, index) => {
+        // Use predefined weights for first few recipes, fall back to equal share if more
+        const weight =
+          baseWeights[index] !== undefined
+            ? baseWeights[index]
+            : 1 / recipesPerDay;
+
+        let servings =
+          index === selectedRecipes.length - 1
+            ? remaining
+            : Math.max(10, Math.round(totalForDay * weight));
+
+        // Ensure we don't overshoot / undershoot dramatically
+        if (index !== selectedRecipes.length - 1) {
+          remaining -= servings;
         }
 
-        const servings = mealType.servings[day] || mealType.servings[0];
-        
-        // Set time throughout the day
+        // Randomize time of day between breakfast and late dinner
         const mealDate = new Date(date);
-        mealDate.setHours(7 + Math.floor(Math.random() * 14), Math.floor(Math.random() * 60), 0, 0);
-        
-        // Prepare ingredients
-        const ingredients = recipe.ingredients.map(ing => ({
+        mealDate.setHours(
+          7 + Math.floor(Math.random() * 14),
+          Math.floor(Math.random() * 60),
+          0,
+          0
+        );
+
+        const ingredients = (recipe.ingredients || []).map(ing => ({
           ingredientId: ing.ingredientId,
           ingredientName: ing.ingredientName,
-          quantity: ing.quantity
+          quantity: ing.quantity,
         }));
 
         meals.push({
@@ -79,38 +104,9 @@ async function updateMealData() {
           quantity: servings,
           ingredients,
           date: admin.firestore.Timestamp.fromDate(mealDate),
-          createdAt: mealDate.toISOString()
+          createdAt: mealDate.toISOString(),
         });
-      }
-    }
-
-    // Add today's meals (more variety)
-    const todayMeals = [
-      { recipeName: 'Chicken Curry', servings: 145 },
-      { recipeName: 'Spaghetti Bolognese', servings: 128 },
-      { recipeName: 'Fried Rice', servings: 95 },
-    ];
-
-    for (const mealData of todayMeals) {
-      const recipe = recipes.find(r => r.name === mealData.recipeName);
-      if (recipe) {
-        const mealDate = new Date();
-        mealDate.setHours(7 + Math.floor(Math.random() * 14), Math.floor(Math.random() * 60), 0, 0);
-        
-        const ingredients = recipe.ingredients.map(ing => ({
-          ingredientId: ing.ingredientId,
-          ingredientName: ing.ingredientName,
-          quantity: ing.quantity
-        }));
-
-        meals.push({
-          name: recipe.name,
-          quantity: mealData.servings,
-          ingredients,
-          date: admin.firestore.Timestamp.fromDate(mealDate),
-          createdAt: mealDate.toISOString()
-        });
-      }
+      });
     }
 
     // Add all meals to Firestore
@@ -123,7 +119,7 @@ async function updateMealData() {
     console.log('✅ Meal data updated successfully!');
     console.log('='.repeat(60));
     console.log(`📊 Total Meals: ${meals.length}`);
-    console.log(`📅 Date Range: Last 7 days + today`);
+    console.log(`📅 Date Range: Last ${DAYS_OF_HISTORY} days (increasing trend)`);
     console.log('='.repeat(60));
     console.log('\n💡 All meals now use recipe-based structure!\n');
 

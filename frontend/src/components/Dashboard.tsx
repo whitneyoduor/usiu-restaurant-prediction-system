@@ -213,10 +213,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
           <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50 border-b">
             <CardTitle className="text-2xl font-bold text-gray-800">Meals Recorded - Last 7 Days</CardTitle>
             <p className="text-sm text-gray-600 mt-1">Daily meal serving trends</p>
-          </CardHeader>
+        </CardHeader>
           <CardContent className="pt-6">
             <ResponsiveContainer width="100%" height={350}>
-              <BarChart data={mealData}>
+            <BarChart data={mealData}>
                 <defs>
                   <linearGradient id="colorMeals" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="0%" stopColor="#10b981" stopOpacity={1}/>
@@ -261,10 +261,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
                   strokeWidth={2}
                   animationDuration={1000}
                 />
-              </BarChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
+            </BarChart>
+          </ResponsiveContainer>
+        </CardContent>
+      </Card>
 
         {/* Pie Chart */}
         <Card className="shadow-lg">
